@@ -1398,9 +1398,9 @@ void declare(py::module &m, const std::string &typestr)
     );
 
     cl.def("display_static",
-           [](Class& im, const char * title)
+           [](Class& im, const char * title, const char * window_id)
            {
-              std::string key = title;
+              std::string key = window_id;
               std::lock_guard<std::mutex> lock(g_disps_mutex);
               if (g_disps.find(key) == g_disps.end())
                   g_disps[key] = CImgDisplay();
@@ -1413,7 +1413,10 @@ void declare(py::module &m, const std::string &typestr)
 
               Args:
                   title (str): Title of the window.
-           )doc"
+                  window_id (str): ID of the window.
+           )doc",
+           py::arg("title"),
+           py::arg("window_id") = "default"
     );
 
     cl.def("apply_geometric_transform",
