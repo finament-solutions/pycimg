@@ -15,36 +15,9 @@ env:
   CIBW_TEST_COMMAND: pytest {project}/tests
 
 jobs:
-
-  semantic_release:
-    name: Run semantic release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v2
-        name: Install Python
-        with:
-          python-version: '3.12'
-
-      - name: Run python-semantic-release
-        run: |
-          pip install python-semantic-release
-          git config --global user.email "d0m3nik@users.noreply.github.com"
-          git config --global user.name "Dominik Brugger"
-          semantic-release version
-
-      - name: Push version
-        if: github.event_name != 'release' || github.event.action != 'published'
-        run: |
-          git push
-          git push --tags
           
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
-    needs: semantic_release
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -89,7 +62,6 @@ jobs:
       
   build_sdist:
     name: Build source distribution
-    needs: semantic_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -97,7 +69,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.12'
 
       - name: Install requirements
         run: pip install -r requirements.txt
@@ -111,7 +83,6 @@ jobs:
 
   coverage:
     name: Run coverage analysis
-    needs: semantic_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -135,23 +106,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
-
-  upload_pypi:
-    needs: [build_wheels, build_sdist]
-    runs-on: ubuntu-latest
-    # upload to PyPI on every tag starting with 'v'
-    #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-    # alternatively, to publish when a GitHub Release is created, use the following rule:
-    if: github.event_name == 'release' && github.event.action == 'published'
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: artifact
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-          #password: ${{ secrets.TEST_PYPI_TOKEN }}
-          #repository_url: https://test.pypi.org/legacy/
