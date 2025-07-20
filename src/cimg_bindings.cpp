@@ -11,6 +11,8 @@
 #define cimg_verbosity 1
 #endif
 #include <CImg.h>
+#include <map>
+#include <mutex>
 
 using namespace cimg_library;
 
@@ -19,6 +21,9 @@ using namespace cimg_library;
 
 namespace py = pybind11;
 
+
+static std::map<std::string, CImgDisplay> g_disps;
+static std::mutex g_disps_mutex;
 
 // Helper function to create CImg<T> from a python array.
 template <typename T>
@@ -1392,6 +1397,25 @@ void declare(py::module &m, const std::string &typestr)
            )doc"
     );
 
+    cl.def("display_static",
+           [](Class& im, const char * title)
+           {
+              std::string key = title;
+              std::lock_guard<std::mutex> lock(g_disps_mutex);
+              if (g_disps.find(key) == g_disps.end())
+                  g_disps[key] = CImgDisplay();
+              g_disps[key].display(im);
+              g_disps[key].set_title(title);
+              g_disps[key].show();
+           },
+           R"doc(
+              Display image in a static window.
+
+              Args:
+                  title (str): Title of the window.
+           )doc"
+    );
+
     cl.def("apply_geometric_transform",
            [](Class& im, const float s, const Class& M, const Class& t)
            {
@@ -1416,6 +1440,7 @@ void declare(py::module &m, const std::string &typestr)
     );
 
 }
+
 
 PYBIND11_MODULE(cimg_bindings, m)
 {
