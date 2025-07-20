@@ -69,3 +69,18 @@ The project is licensed under the GPL3 license.
 .. _png: https://github.com/glennrp/libpng/
 .. _tiff: https://gitlab.com/libtiff/libtiff
 .. _readthedocs: http://pycimg.readthedocs.io/en/latest/ 
+
+
+Installation from source
+--------------------------
+
+To install from source,  run the following commands:
+
+.. code-block:: bash
+
+    git clone https://github.com/finament-solutions/pycimg.git
+    cd pycimg
+    pip install -r requirements.txt  # Install required Python packages
+    python install_conan_packages.py  # Install CImg dependencies using Conan
+    python -m build -w  # Build the package
+    python -m pip install dist/*.whl  # Install the built wheel package
